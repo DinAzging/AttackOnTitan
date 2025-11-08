@@ -475,6 +475,11 @@ namespace gui
         sf::Color titanIconColor;            //remove to sf::Texture titanIconTexture;
         sf::Color playerIconColor;           //remove to sf::Texture playerIconTexture;
 
+        std::string currentTitle;
+        std::string currentInfo;
+        std::string pendingTitle;
+        std::string pendingInfo;
+
         std::string startTitle;
         std::string startInfo;
 
@@ -521,7 +526,12 @@ namespace gui
         virtual void initWindow();
         virtual void initText();
         virtual void initButtons();
+
         void initIcon();
+        void initTextPositions();
+        void initIconPositions();
+        void initHealthLinePositions();
+        void initNamesAndThrow();
 
     public:
         BattleWindow
@@ -534,6 +544,8 @@ namespace gui
         void updateText(std::string dice_result, bool apply_changes);
         void updateIcon(bool apply_changes);
         void updateHealthLines();
+        void updateHealthLinePositions();
+
         virtual void updateButtons(const float& dt, const sf::Vector2i& mouse_pos_window);
         void update(const float &dt, const sf::Vector2i &mouse_pos_window, std::string dice_result = "", bool dice_button_pressed = false);
 

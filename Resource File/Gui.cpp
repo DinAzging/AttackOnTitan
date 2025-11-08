@@ -1875,7 +1875,6 @@ void gui::BeastWindow::render(sf::RenderTarget *target)
 
 
 /*------------------------------------CLASS Battle WINDOW----------------------------------------------*/
-
 void gui::BattleWindow::initTexture()
 {
     this->titanIconColor = sf::Color::Red;
@@ -1884,16 +1883,8 @@ void gui::BattleWindow::initTexture()
 
 void gui::BattleWindow::initBackground()
 {
-     this->windowBackground.setSize
-    (
-        this->window.getSize()
-    );
-
-    this->windowBackground.setPosition
-    (
-        this->window.getPosition()
-    );
-
+    this->windowBackground.setSize(this->window.getSize());
+    this->windowBackground.setPosition(this->window.getPosition());
     this->windowBackground.setFillColor(sf::Color(160, 82, 45));
     this->windowBackground.setOutlineColor(sf::Color::Black);
     this->windowBackground.setOutlineThickness(3);
@@ -1906,6 +1897,10 @@ void gui::BattleWindow::initVariables()
     this->needThrow = 0;
     this->iconSize = sf::Vector2f(150.f, 300.f);
     this->isSetPositionIcons = false;
+    this->currentTitle = "";
+    this->currentInfo = "";
+    this->pendingTitle = "";
+    this->pendingInfo = "";
 }
 
 void gui::BattleWindow::initWindow()
@@ -1921,7 +1916,6 @@ void gui::BattleWindow::initText()
     this->startInfo = "Press Start button";
     
     this->playerTurnTitle = "Player's turn";
-
     this->titanTurnTitle = "Titan's turn";
 
     this->playerWonTitle = "Congratulations!";
@@ -1943,6 +1937,61 @@ void gui::BattleWindow::initText()
     this->diceResultText.setFont(this->font);
     this->playerNameText.setFont(this->aotFont);
     this->titanNameText.setFont(this->aotFont);
+
+    this->currentTitle = this->startTitle;
+    this->currentInfo = this->startInfo;
+    this->titleText.setString(this->currentTitle);
+    this->infoText.setString(this->currentInfo);
+
+    this->initTextPositions();
+}
+
+void gui::BattleWindow::initTextPositions()
+{
+    this->titleText.setPosition
+    (
+        sf::Vector2f
+        (
+            this->window.getPosition().x + this->window.getSize().x / 2.f - this->titleText.getGlobalBounds().width / 2.f,
+            this->window.getPosition().y + 5.f
+        )
+    );
+
+    this->infoText.setPosition
+    (
+        sf::Vector2f
+        (
+            this->window.getPosition().x + this->window.getSize().x / 2.f - this->infoText.getGlobalBounds().width / 2.f,
+            this->titleText.getPosition().y + this->titleText.getGlobalBounds().height + 10.f
+        )
+    );
+
+    this->playerNameText.setPosition
+    (
+        sf::Vector2f
+        (
+            this->window.getPosition().x + this->window.getSize().x / 3.f - this->playerNameText.getGlobalBounds().width / 2.f - 150.f,
+            this->window.getPosition().y + 2.f
+        )
+    );
+
+    this->titanNameText.setPosition
+    (
+        sf::Vector2f
+        (
+            this->window.getPosition().x + this->window.getSize().x / 3.f * 2.f - this->titanNameText.getGlobalBounds().width / 2.f + 150.f,
+            this->window.getPosition().y + 2.f
+        )
+    );
+
+    this->diceResultText.setPosition
+    (
+        sf::Vector2f
+        (
+            this->window.getPosition().x + this->window.getSize().x / 2.f - this->diceResultText.getGlobalBounds().width,
+            this->window.getPosition().y + this->window.getSize().y - 70.f
+        )
+    );
 }
 
 void gui::BattleWindow::initButtons()
@@ -1977,6 +2026,49 @@ void gui::BattleWindow::initIcon()
 
     this->playerIcon.setFillColor(this->playerIconColor);
     this->titanIcon.setFillColor(this->titanIconColor);
+
+    this->initIconPositions();
+}
+
+void gui::BattleWindow::initIconPositions()
+{
+    float player_x = this->window.getPosition().x + this->window.getSize().x / 3.f - this->iconSize.x / 2.f;
+    float titan_x = this->window.getPosition().x + this->window.getSize().x / 3.f * 2.f - this->iconSize.x / 2.f;
+    float y_position = this->window.getPosition().y + this->window.getSize().y / 2.f - this->iconSize.y / 2.f;
+
+    this->playerIcon.setPosition(player_x, y_position);
+    this->titanIcon.setPosition(titan_x, y_position);
+    
+    this->isSetPositionIcons = true;
+}
+
+void gui::BattleWindow::initHealthLinePositions()
+{
+    this->updateHealthLinePositions();
+    this->initPlayerAndTitanHealthLine = true;
+}
+
+void gui::BattleWindow::updateHealthLinePositions()
+{
+    float playerHealthLineWidth = this->player.getHealth() * 25.f;
+    this->player.setPositionHealthLine
+    (
+        sf::Vector2f
+        (
+            this->playerNameText.getPosition().x + this->playerNameText.getGlobalBounds().width / 2.f - playerHealthLineWidth / 2.f,
+            this->playerNameText.getPosition().y + 50.f
+        )
+    );
+
+    float titanHealthLineWidth = this->titan.getHealth() * 25.f; 
+    this->titan.setPositionHealthLine
+    (
+        sf::Vector2f
+        (
+            this->titanNameText.getPosition().x + this->titanNameText.getGlobalBounds().width / 2.f - titanHealthLineWidth / 2.f,
+            this->titanNameText.getPosition().y + 50.f
+        )
+    );
 }
 
 gui::BattleWindow::BattleWindow
@@ -1993,339 +2085,185 @@ gui::BattleWindow::BattleWindow
 
     this->initVariables();
     this->initTexture();
-    this->initIcon();
     this->initWindow();
     this->initText();
     this->initBackground();
     this->initButtons();
+    this->initIcon();
+    
+    this->initNamesAndThrow();
 }
 
 gui::BattleWindow::~BattleWindow()
 {
 }
 
+void gui::BattleWindow::initNamesAndThrow()
+{
+    this->titanNameString = this->titan.getName();
+    this->playerNameString = this->player.getName();
+
+    this->titanNameText.setString(this->titanNameString);
+    this->playerNameText.setString(this->playerNameString);
+
+    switch (this->titan.getType())
+    {
+    case SLOW:
+        this->needThrow = 3;
+        break;
+
+    case ORDINARY:
+        this->needThrow = 4;
+        break;
+
+    case ANOMALOUS:
+        this->needThrow = 5;
+        break;
+    
+    default:
+        break;
+    }
+    
+    this->initPlayerAndTitanName = true;
+    
+    this->initTextPositions();
+    this->initHealthLinePositions();
+}
 
 void gui::BattleWindow::updateText(std::string dice_result, bool apply_changes)
 {
+    if (apply_changes && !this->pendingTitle.empty())
+    {
+        this->currentTitle = this->pendingTitle;
+        this->currentInfo = this->pendingInfo;
+        this->pendingTitle = "";
+        this->pendingInfo = "";
+    }
+
+    std::string displayTitle = this->currentTitle;
+    std::string displayInfo = this->currentInfo;
+
     switch (this->state)
     {
     case Start:
-        this->titleText.setString(this->startTitle);
-        this->infoText.setString(this->startInfo);    
+        if (this->pendingTitle.empty() || apply_changes)
+        {
+            displayTitle = this->startTitle;
+            displayInfo = this->startInfo;
+        }
         break;
 
     case PlayerTurn:
         this->needThrowString = std::to_string(this->needThrow);
         this->needThrowText.setString(this->needThrowString);
 
-        this->playerTurnInfo = "To attack, roll a die greater than ";
-        this->titleText.setString(this->playerTurnTitle);
-        this->infoText.setString(this->playerTurnInfo);    
+        if (this->pendingTitle.empty())
+        {
+            this->pendingTitle = this->playerTurnTitle;
+            this->pendingInfo = "To attack, roll a die greater than ";
+        }
+        
+        if (apply_changes)
+        {
+            displayTitle = this->playerTurnTitle;
+            displayInfo = "To attack, roll a die greater than ";
+        }
         break;
     
     case TitanTurn:
         this->needThrowString = std::to_string(this->needThrow);
         this->needThrowText.setString(this->needThrowString);
 
-        this->titanTurnInfo = "To defend, roll a die greater than ";
-        this->titleText.setString(this->titanTurnTitle);
-        this->infoText.setString(this->titanTurnInfo);    
+        if (this->pendingTitle.empty())
+        {
+            this->pendingTitle = this->titanTurnTitle;
+            this->pendingInfo = "To defend, roll a die greater than ";
+        }
+        
+        if (apply_changes)
+        {
+            displayTitle = this->titanTurnTitle;
+            displayInfo = "To defend, roll a die greater than ";
+        }
         break;
 
     case PlayerWon:
-        this->titleText.setString(this->playerWonTitle);
-        this->infoText.setString(this->playerWonInfo);
+        if (this->pendingTitle.empty() || apply_changes)
+        {
+            displayTitle = this->playerWonTitle;
+            displayInfo = this->playerWonInfo;
+        }
         break;
     
     case TitanWon:
-        this->titleText.setString(this->titanWonTitle);
-        this->infoText.setString(this->titanWonInfo);
+        if (this->pendingTitle.empty() || apply_changes)
+        {
+            displayTitle = this->titanWonTitle;
+            displayInfo = this->titanWonInfo;
+        }
+        break;
     
     default:
         std::cerr<<"Error in TitanWindow::updateText"<<std::endl;
         break;
     }
 
-    this->titleText.setPosition
-    (
-        sf::Vector2f
-        (
-            this->window.getPosition().x + this->window.getSize().x / 2.f - this->titleText.getGlobalBounds().width / 2.f,
-            this->window.getPosition().y + 5.f
-        )
-    );
+    this->titleText.setString(displayTitle);
+    this->infoText.setString(displayInfo);
 
-    this->infoText.setPosition
-    (
-        sf::Vector2f
-        (
-            this->window.getPosition().x + this->window.getSize().x / 2.f - this->infoText.getGlobalBounds().width / 2.f,
-            this->titleText.getPosition().y + this->titleText.getGlobalBounds().height + 10.f
-        )
-    );
+    this->initTextPositions();
 
-    if (this->state != Start)
+    if (this->state == PlayerTurn || this->state == TitanTurn)
     {
-        if (!this->initPlayerAndTitanName)
-        {
-            this->titanNameString = this->titan.getName();
-            this->playerNameString = this->player.getName();
-
-            this->titanNameText.setString(this->titanNameString);
-            this->playerNameText.setString(this->playerNameString);
-
-            this->playerNameText.setCharacterSize(35);
-            this->titanNameText.setCharacterSize(35);
-
-            this->playerNameText.setPosition
+        this->needThrowText.setPosition
+        (
+            sf::Vector2f
             (
-                sf::Vector2f
-                (
-                    this->window.getPosition().x + this->window.getSize().x / 3.f - this->playerNameText.getGlobalBounds().width / 2.f - 150.f,
-                    this->window.getPosition().y + 2.f
-                )
-            );
+                this->infoText.getPosition().x + this->infoText.getGlobalBounds().width,
+                this->infoText.getPosition().y
+            )
+        );
 
-            this->titanNameText.setPosition
-            (
-                sf::Vector2f
-                (
-                    this->window.getPosition().x + this->window.getSize().x / 3.f * 2.f - this->titanNameText.getGlobalBounds().width / 2.f + 150.f,
-                    this->window.getPosition().y + 2.f
-                )
-            );
-
-            switch (this->titan.getType())
-            {
-            case SLOW:
-                this->needThrow = 3;
-                break;
-
-            case ORDINARY:
-                this->needThrow = 4;
-                break;
-
-            case ANOMALOUS:
-                this->needThrow = 5;
-                break;
-            
-            default:
-                break;
-            }
-            initPlayerAndTitanName = true;
-        }
-        
-        if (this->state == PlayerTurn || this->state == TitanTurn)
-          {
-              this->needThrowText.setPosition
-              (
-                  sf::Vector2f
-                  (
-                      this->infoText.getPosition().x + this->infoText.getGlobalBounds().width,
-                      this->infoText.getPosition().y
-                  )
-              );
-
-              this->diceResult = "Dice Result: " + dice_result;
-              this->diceResultText.setString(this->diceResult);
-              this->diceResultText.setPosition
-              (
-                  sf::Vector2f
-                  (
-                      this->window.getPosition().x + this->window.getSize().x / 2.f - this->diceResultText.getGlobalBounds().width,
-                      this->window.getPosition().y + this->window.getSize().y - 70.f
-                  )
-              );
-          }
+        this->diceResult = "Dice Result: " + dice_result;
+        this->diceResultText.setString(this->diceResult);
+        this->initTextPositions();
     }
 }
 
 void gui::BattleWindow::updateIcon(bool apply_changes)
 {
-    if (!this->isSetPositionIcons && this->state != Start)
-    {
-        float player_x = this->window.getPosition().x + this->window.getSize().x / 3.f - this->iconSize.x / 2.f;
-        float titan_x = this->window.getPosition().x + this->window.getSize().x / 3.f * 2.f - this->iconSize.x / 2.f;
-        float y_position = this->window.getPosition().y + this->window.getSize().y / 2.f - this->iconSize.y / 2.f;
-
-        this->playerIcon.setPosition(player_x, y_position);
-        this->titanIcon.setPosition(titan_x, y_position);
-        
-        this->isSetPositionIcons = true;
-    }
-
     if (apply_changes || !this->delay)
     {
         if (this->state == PlayerTurn)
         {
-            this->playerIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x * 1.2,
-                    this->iconSize.y * 1.2
-                )
-            );
-    
-            this->titanIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x,
-                    this->iconSize.y
-                )
-            );
+            this->playerIcon.setSize(sf::Vector2f(this->iconSize.x * 1.2, this->iconSize.y * 1.2));
+            this->titanIcon.setSize(sf::Vector2f(this->iconSize.x, this->iconSize.y));
         }
-    
         else if (this->state == TitanTurn)
         {
-            this->titanIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x * 1.2,
-                    this->iconSize.y * 1.2
-                )
-            );
-    
-            this->playerIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x,
-                    this->iconSize.y
-                )
-            );
+            this->titanIcon.setSize(sf::Vector2f(this->iconSize.x * 1.2, this->iconSize.y * 1.2));
+            this->playerIcon.setSize(sf::Vector2f(this->iconSize.x, this->iconSize.y));
         }
-    
         else 
         {
-            this->titanIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x,
-                    this->iconSize.y
-                )
-            );
-    
-            this->playerIcon.setSize
-            (
-                sf::Vector2f
-                (
-                    this->iconSize.x,
-                    this->iconSize.y
-                )
-            );
+            this->titanIcon.setSize(sf::Vector2f(this->iconSize.x, this->iconSize.y));
+            this->playerIcon.setSize(sf::Vector2f(this->iconSize.x, this->iconSize.y));
         }
+
+        this->initIconPositions();
 
         if (!this->delay)
         {
             this->delay = true;
         }
     }
-    
 }
 
 void gui::BattleWindow::updateHealthLines()
 {
-    if (this->state != Start)
+    if (this->state != Start && this->initPlayerAndTitanName)
     {
-        if (!this->initPlayerAndTitanHealthLine && this->initPlayerAndTitanName)
-        {
-            switch (this->player.getHealth())
-            {
-            case 4:
-                this->player.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->playerNameText.getPosition().x + this->playerNameText.getGlobalBounds().width / 2.f - 100.f,
-                        this->playerNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-
-            case 3:
-                this->player.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->playerNameText.getPosition().x + this->playerNameText.getGlobalBounds().width / 2.f - 75.f,
-                        this->playerNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-
-            case 2:
-                this->player.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->playerNameText.getPosition().x + this->playerNameText.getGlobalBounds().width / 2.f - 50.f,
-                        this->playerNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-
-            case 1:
-                this->player.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->playerNameText.getPosition().x + this->playerNameText.getGlobalBounds().width / 2.f - 25.f,
-                        this->playerNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-            
-            default:
-                std::cerr<<"Error on TitanWindow::updateHealthLines"<<std::endl;
-                break;
-            }
-
-            switch (this->titan.getHealth())
-            {
-            case 1:
-                this->titan.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->titanNameText.getPosition().x + this->titanNameText.getGlobalBounds().width / 2.f - 25.f,
-                        this->titanNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-
-            case 2:
-                this->titan.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->titanNameText.getPosition().x + this->titanNameText.getGlobalBounds().width / 2.f - 50.f,
-                        this->titanNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-            
-            case 3:
-                this->titan.setPositionHealthLine
-                (
-                    sf::Vector2f
-                    (
-                        this->titanNameText.getPosition().x + this->titanNameText.getGlobalBounds().width / 2.f - 75.f,
-                        this->titanNameText.getPosition().y + 50.f
-                    )
-                );
-                break;
-            
-            default:
-                std::cerr<<"Error on TitanWindow::updateHealthLines"<<std::endl;
-                break;
-            }
-            
-            this->initPlayerAndTitanHealthLine = true;
-        }
+        this->updateHealthLinePositions();
     }
 }
 
@@ -2342,25 +2280,16 @@ void gui::BattleWindow::updateButtons(const float &dt, const sf::Vector2i &mouse
             this->showWindow = false;
         }
     }
-
     else if (this->state == Start)
     {
         if (this->buttons["START"]->isReleased())
         {
             this->state = PlayerTurn;
+            this->timer.restart();
+            this->waitingForDelay = true;
         }
     }
 }
-
-// void gui::BattleWindow::updateElapsedTime()
-// {
-//     this->elapsedTime = timer.getElapsedTime().asSeconds();
-//
-//     if (this->elapsedTime == 3.0f)
-//     {
-//         this->endTimer = true;
-//     }
-// }
 
 void gui::BattleWindow::update(const float &dt, const sf::Vector2i &mouse_pos_window, std::string dice_result, bool dice_button_pressed)
 {
@@ -2370,7 +2299,6 @@ void gui::BattleWindow::update(const float &dt, const sf::Vector2i &mouse_pos_wi
         this->waitingForDelay = true;
         this->diceButtonWasPressed = true;
     }
-
     else if (!dice_button_pressed)
     {
         this->diceButtonWasPressed = false;
@@ -2389,7 +2317,6 @@ void gui::BattleWindow::update(const float &dt, const sf::Vector2i &mouse_pos_wi
     this->updateIcon(apply_changes);
     this->updateButtons(dt, mouse_pos_window);
 }
-
 
 void gui::BattleWindow::renderHealthLine(sf::RenderTarget& target)
 {
@@ -2425,34 +2352,11 @@ void gui::BattleWindow::render(sf::RenderTarget *target)
             target->draw(this->needThrowText);
             target->draw(this->playerNameText);
             target->draw(this->titanNameText);
-
             target->draw(this->diceResultText);
-            
-            // if (!this->delay)
-            // {   
-            //     target->draw(this->playerIcon);
-            //     target->draw(this->titanIcon);
-            //     this->renderHealthLine(*target);
-//
-            //     this->delay = true;
-//
-            //     this->renders =
-            //     {
-            //         [this](sf::RenderTarget* target) { target->draw(this->playerIcon); },
-            //         [this](sf::RenderTarget* target) { target->draw(this->titanIcon); },
-            //         [this](sf::RenderTarget* target) { this->renderHealthLine(*target); }
-            //     };
-            // }
-            // else
-            // {
-            //     this->delayCallRender(target, 3000);
-            // }
-            
             target->draw(this->playerIcon);
             target->draw(this->titanIcon);
-            this->renderHealthLine(*target);
 
+            this->renderHealthLine(*target);
         }
     }
-}   
-
+}
