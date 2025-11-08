@@ -1,0 +1,5 @@
+leak:^operator new*
+leak:^malloc
+leak:libstdc++
+leak:libc++
+leak:libsfml

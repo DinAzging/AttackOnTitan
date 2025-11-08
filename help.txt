@@ -1,0 +1,5 @@
+g++ States/GameState.cpp States/State.cpp Source\ Files/Game.cpp Source\ Files/main.cpp Map/Map.cpp Map/Cell.cpp Resource\ File/Gui.cpp Entities/entity.cpp Entities/player.cpp Entities/Titan.cpp GameLogic/Battle/TitanBattle.cpp States/StateData.cpp Resource\ File/GraphicsSettings.cpp GameLogic/Cell\ Interactions/WarehouseCardDrop.cpp GameLogic/Components/BattleComponent/BattleComponent.cpp GameLogic/Components/MovementComponent/MovementComponent.cpp GameLogic/Components/ViewComponent/ViewComponent.cpp GameLogic/Components/WarehouseComponent/WarehouseComponent.cpp GameLogic/Components/ForestComponent/ForestComponent.cpp GameLogic/Cell\ Interactions/ForestInteraction.cpp -o main -lsfml-graphics -lsfml-system -lsfml-window
+Сделать класс, что будет загружать ресурсы, посде раскидывать их через указатели по другим классам 
+
+Придумать переменную хрянящую позицию и индекс игрока
+
